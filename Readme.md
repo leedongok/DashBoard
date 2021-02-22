@@ -85,7 +85,7 @@
    - 멀티차트 데이터 Mybatis -> jpa전환 완료  
    - 로그인 Mybatis -> jpa전환 완료  
    - 게터 세터 -> 롬복 적용완료  
-  
+24. 웹소켓 채팅 예제 참고 https://myhappyman.tistory.com/100?category=873296
 
 ### 개발이슈
 1. SMTP 비밀번호 찾기 properties 정보 계정 정보 삭제
