@@ -243,6 +243,17 @@
     <script src="/static/js/custom.min.js"></script>
   </body>
 
+<!-- IE접근 제어 -->
+<script type="text/javascript">
+	var agent = navigator.userAgent.toLowerCase();
+
+	if ((navigator.appName == 'Netscape' && navigator.userAgent.search('Trident') != -1) || (agent.indexOf("msie") != -1)) {
+		alert("이 시스템은 인터넷 익스플로러를 지원하지 않습니다.");
+		
+		$('#accessCancel').hide();
+		$('#accessCancel1').hide();
+	} 
+</script>
 
 
 
