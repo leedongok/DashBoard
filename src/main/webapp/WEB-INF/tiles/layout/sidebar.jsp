@@ -2,6 +2,17 @@
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
+<!-- 사용자 구분 CSS -->
+<style>
+.chating .me{
+	color: #F6F6F6;
+	text-align: right;
+}
+.chating .others{
+	color: #FFE400;
+	text-align: left;
+}
+</style>
 
 <div class="profile clearfix">
     <div class="profile_pic">
@@ -13,38 +24,23 @@
     </div>
 </div>
 <br />
-	<!-- sidebar menu -->
-	
-	
+	<!-- sidebar 메뉴 창 -->
 	<div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
 	    <div class="menu_section">
 	        <h3>업무관리 목록</h3>
 	        <ul class="nav side-menu">
-	        	<li><a href="dashboard" ><i class="fa fa-desktop"></i> 통합정보 <span class="label label-success pull-right">공사중</span></a></li>
-	            <li><a href="hyopage"><i class="fa  fa-bar-chart-o"></i> 데이터차트 <span class="label label-success pull-right">공사중</span></a></li>
-	            <li><a href="calendar"><i class="fa fa-calendar"></i>일정표</a></li>
+	        	<li><a href="dashboard" ><i class="fa fa-desktop"></i> 통합정보 <span class="label label-success pull-right">청산파트</span></a></li>
+	            <li><a href="hyopage"><i class="fa  fa-bar-chart-o"></i> 차트정보 <span class="label label-success pull-right">결제파트</span></a></li>
+	            <li><a href="calendar"><i class="fa fa-calendar"></i>일정정보</a></li>
 	            <li><a href="secondery"><i class="fa fa-tachometer"></i>모니터링</a></li>
-               <!-- <li><a href="thirdy"><i class="fa fa-cogs"></i>이벤트관리</a></li> -->
-	            <!-- 미사용으로인한 주석처리 -->
-	           <!--  <li><a><i class="fa fa-desktop"></i> 개발 샘플API <span class="label label-success pull-right">개발용</span><span class="fa fa-chevron-down"></span></a>
-	                <ul class="nav child_menu">
-	                	<li><a href="form">폼구성 샘플</a></li>
-	                	<li><a href="icons">심볼 아이콘 샘플</a></li>
-	                    <li><a href="chartjs">Chart JS</a></li>
-	                    <li><a href="chartjs2">Chart JS2</a></li>
-	                    <li><a href="echarts">ECharts</a></li>
-	                </ul>
-	            </li> -->
 	        </ul>
-	         <!-- <button id="compose" class="btn btn-sm btn-success btn-block" type="button">채팅 시작</button> -->
 	    </div>
 	</div>
-	<!-- /sidebar menu -->
 
 
 	<!-- 사이드 바 메인 타이머 -->
 	<body onload="printClock()">
-		<div style="overflow:hidden; width:100%; height:150px; line-height:60px; color:#c3f400;font-size:30px; text-align:center;" id="clock">
+		<div style="overflow:hidden; width:100%; height:150px; line-height:60px; color:#f37031;font-size:30px; text-align:center;" id="clock">
 		</div>
 	</body>
 	<!-- /menu footer buttons -->
@@ -55,8 +51,8 @@
 	    <a data-toggle="tooltip" data-placement="top" title="FullScreen" style="color:#fff; background:#0a0a0a;">
 	        <span class="glyphicon glyphicon-fullscreen" aria-hidden="true" onclick="toggleFullScreen();" ></span>
 	    </a>
-	    <a data-toggle="tooltip" data-placement="top" title="Lock" style="color:#fff; background:#0a0a0a;">
-	        <span class="glyphicon glyphicon-eye-close" id="onOff"  aria-hidden="true"></span>
+	    <a data-toggle="tooltip" data-placement="top" title="chatting" id="compose" style="color:#fff; background:#0a0a0a;">
+	        <span class="glyphicon glyphicon-send" id="onOff"   aria-hidden="true"></span>
 	    </a>
 	    <a data-toggle="tooltip" data-placement="top" title="Logout" href="logout"  style="color:#fff; background:#0a0a0a;" >
 	        <span class="glyphicon glyphicon-off" aria-hidden="true" ></span>
@@ -64,31 +60,123 @@
 	</div>
 	
 	
+	 <!-- compose -->
+	<div class="compose col-md-4  " id="compose_window">
+		<div class="compose-header">
+			문의하기
+			<button type="button" class="close compose-close">
+				<span>×</span>
+			</button>
+		</div>
 	
-	 <!-- 채팅창 UI -->
-	 <div id="upList">
-    <div class="compose col-md-4 col-xs-12">
-      <div class="compose-header">
-        	대화 시작하기
-        <button type="button" class="close compose-close">
-          <span>×</span>
-        </button>
-      </div>
-
-      <div class="compose-body">
-        <div id="alerts"></div>
-
-
-        <div id="editor" class="editor-wrapper"></div>
-      </div>
-
-      <div class="compose-footer">
-        <button id="send" class="btn btn-sm btn-success" type="button">전송</button>
-      </div>
-    </div>
-    </div>
-    <!-- /compose -->
+		<div class="compose-body">
+			<div id="alerts"></div>
+			<div id="contaner" class="container">
+			<input type="hidden" id="sessionId" value=""><!-- 세션 아이디 임시저장공간 -->
+				<div id="chating" class="jumbotron" style="overflow:auto; font-size:1em; width:auto; height:200px; padding:20px; color:#000;"></div>
+				<div id="yourName">
+					<table class="inputTable">
+						<tr>
+							<th><input type="text" name="userName" style="color:#000" id="userName" placeholder="유저명 입력하시오."></th>
+							<th><button onclick="chatName()" id="startBtn" class="btn btn-sm btn-dark">등록</button></th>
+						</tr>
+					</table>
+				</div>
+				<div id="yourMsg">
+					<table class="inputTable">
+						<tr>
+							<th><input id="chatting" style="color:#000" placeholder="보내실 메세지를 입력하시오."></th>
+							<th><button id="send" class="btn btn-sm btn-success" onclick="send()" type="button">Send</button></th>
+						</tr>
+					</table>
+				</div>
+				
+			</div>
+		</div>
+	</div>
     
+    
+ <!-- jQuery -->
+<script src="/static/vendors/jquery/dist/jquery.min.js"></script>   
+
+
+	<!-- 웹소켓 통신 프로세스 -->
+	<script type="text/javascript">
+	var ws;
+	
+	//웹소켓 오픈
+	function wsOpen(){
+		ws = new WebSocket("ws://" + location.host + "/chating");
+		wsEvt();//이벤트 펑션 호출
+	}
+	
+	//웹소켓 이벤트
+	function wsEvt(){
+		//소켓이 열리면 동작
+		ws.onopen = function(data){
+			
+		}
+		
+		//메세지 띄우는 코드
+		ws.onmessage = function(data){
+			var msg = data.data;
+			if(msg != null && msg.trim() != ''){ //메세지 중 널과 공백에 대한 예외처리
+				var d = JSON.parse(msg);//메세지 제이슨변환
+				if(d.type == "getId"){ //JSON 파싱된 메세지 값 중 getId라는 일치하는 값을 캐치한다.
+					var si = d.sessionId != null ? d.sessionId : ""; //JSon값 중 세션아이디의 널과 공백 값이 아닌 값을 si에 담는다.
+					if(si != ''){  //si가 공백이 아닐경우
+						$("#sessionId").val(si);//제이슨 파싱된 결과값 넣어버리기	
+					}
+				}else if(d.type == "message"){
+						if(d.sessionId == $("#sessionId").val()){
+							$("#chating").append("<p class='me'>나 :"+ d.msg+ "</p>");
+							$("#chating").scrollTop($("#chating")[0].scrollHeight);//중요 - 스크롤바 하단내리기 상대가 입력했을경우 하단으로 안내려가는 문제가발생함 찾느라애먹음;;  제이쿼리 방식을 썼음
+						}else{
+							$("#chating").append("<p class='others'>"+ d.userName + " :" + d.msg + "</p>");
+							$("#chating").scrollTop($("#chating")[0].scrollHeight);//중요 - 스크롤바 하단내리기 상대가 입력했을경우 하단으로 안내려가는 문제가발생함 찾느라애먹음;;  제이쿼리 방식을 썼음
+						}
+				}else{
+					console.warn("unknown type!");
+				}
+			}
+		}
+		//엔터키 인식 코드
+		document.addEventListener("keypress",function(e){
+			if(e.keyCode == 13){ 
+				send();
+			}
+		});
+		
+	}
+	//ws.onclose; x버튼 누르면 웹소켓도 닫아버리는 기능 구현하기
+	
+	//사용자명 지정
+	function chatName(){
+		var userName = $("#userName").val();
+		//사용자명 널이나 공백에 대한 예외처리
+		if(userName == null || userName.trim() == ""){
+			alert("사용자명 입력하시오.");
+			$("#userName").focus();
+		}else{
+			wsOpen();//사용자명 입력되면 웹소켓 오픈 명령
+			$("#yourName").hide();
+			$("#yourMsg").show();
+		}
+	}
+	
+	//내용전달
+	function send(){
+		var option = {
+				type : "message", //구분자
+				sessionId : $("#sessionId").val(), //세션별 아이디
+				userName : $("#userName").val(), //유저명
+				msg : $("#chatting").val() //메세지 쓴거 
+		}
+		ws.send(JSON.stringify(option));//채팅정보 전송
+		$('#chatting').val("");//채팅입력값 날리기
+	}
+	</script>
+
 	<!-- 대시보드 풀스크린 적용 -->
 	<script type="text/javascript">
 		function toggleFullScreen() {
@@ -106,7 +194,8 @@
 		  }
 		}
 	</script>
-	<!-- 시계 30초기점으로 컬러 변경 옵션 스크립트 -->
+	
+	<!-- 시계 30초기점으로 컬러 변경 액션 기능 -->
 	<script type="text/javascript">
 		function printClock() {
 		    var clock = document.getElementById("clock");            // 출력할 장소 선택
