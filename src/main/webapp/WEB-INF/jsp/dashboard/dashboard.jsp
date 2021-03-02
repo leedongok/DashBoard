@@ -21,7 +21,7 @@
 <div class="right_col" role="main"  style="background-color:#5c5c5c38;" >
 	<div class="row">
 	<!-- 상단 집계S -->
-	<div class="col-md-12 col-sm-12 col-xs-12">
+	<div class="col-md-12 col-sm-12 col-xs-12" style="position: relative; z-index: 0;">
 		<div class="x_panel" style="background-color:#2f2e2e;">
 			<div class="row tile_count">
 				<div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
