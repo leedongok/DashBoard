@@ -2,17 +2,6 @@
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
-<!-- 사용자 구분 CSS -->
-<style>
-.chating .me{
-	color: #F6F6F6;
-	text-align: right;
-}
-.chating .others{
-	color: #FFE400;
-	text-align: left;
-}
-</style>
 
 <div class="profile clearfix">
     <div class="profile_pic">
@@ -20,10 +9,17 @@
     </div>
     <div class="profile_info">
         <span>환영합니다. </span>
-        <h2><sec:authentication property="principal.username" /></h2>
+        <h2>
+        <sec:authorize access="isAuthenticated()"><!-- 로그아웃, 회원정보 기능 -->
+        <!-- 인증이 완료되지 않으면 Null들어감 인증완료후에 호출해야됨 -->
+        <sec:authentication property="principal.username" var="user_id"/>
+        <div id="user_id">${user_id}</div>
+        </sec:authorize>
+        </h2>
     </div>
 </div>
 <br />
+
 	<!-- sidebar 메뉴 창 -->
 	<div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
 	    <div class="menu_section">
@@ -31,19 +27,19 @@
 	        <ul class="nav side-menu">
 	        	<li><a href="dashboard" ><i class="fa fa-desktop"></i> 통합정보 <span class="label label-success pull-right">청산파트</span></a></li>
 	            <li><a href="hyopage"><i class="fa  fa-bar-chart-o"></i> 차트정보 <span class="label label-success pull-right">결제파트</span></a></li>
+	            <li><a href="thirdy"><i class="fa fa-cogs"></i> 이벤트관리 <span class="label label-success pull-right">등록파트</span></a></li>
 	            <li><a href="calendar"><i class="fa fa-calendar"></i>일정정보</a></li>
 	            <li><a href="secondery"><i class="fa fa-tachometer"></i>모니터링</a></li>
+	            
 	        </ul>
 	    </div>
 	</div>
-
 
 	<!-- 사이드 바 메인 타이머 -->
 	<body onload="printClock()">
 		<div style="overflow:hidden; width:100%; height:150px; line-height:60px; color:#f37031;font-size:30px; text-align:center;" id="clock">
 		</div>
 	</body>
-	<!-- /menu footer buttons -->
 	<div class="sidebar-footer hidden-small">
 	    <a data-toggle="tooltip" data-placement="top" title="mypage" href="mypage" style="color:#fff; background:#0a0a0a;">
 	        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
@@ -52,7 +48,7 @@
 	        <span class="glyphicon glyphicon-fullscreen" aria-hidden="true" onclick="toggleFullScreen();" ></span>
 	    </a>
 	    <a data-toggle="tooltip" data-placement="top" title="chatting" id="compose" style="color:#fff; background:#0a0a0a;">
-	        <span class="glyphicon glyphicon-send" id="onOff"   aria-hidden="true"></span>
+	        <span class="glyphicon glyphicon-send" aria-hidden="true"></span>
 	    </a>
 	    <a data-toggle="tooltip" data-placement="top" title="Logout" href="logout"  style="color:#fff; background:#0a0a0a;" >
 	        <span class="glyphicon glyphicon-off" aria-hidden="true" ></span>
@@ -61,11 +57,11 @@
 	
 	
 	 <!-- compose -->
-	<div class="compose col-md-4  " id="compose_window">
+	<div class="compose col-md-4" id="compose_window"  style="z-index: 2;">
 		<div class="compose-header">
 			문의하기
 			<button type="button" class="close compose-close">
-				<span>×</span>
+				<span id="wsClose">×</span>
 			</button>
 		</div>
 	
@@ -75,35 +71,39 @@
 			<input type="hidden" id="sessionId" value=""><!-- 세션 아이디 임시저장공간 -->
 				<div id="chating" class="jumbotron" style="overflow:auto; font-size:1em; width:auto; height:200px; padding:20px; color:#000;"></div>
 				<div id="yourName">
-					<table class="inputTable">
-						<tr>
-							<th><input type="text" name="userName" style="color:#000" id="userName" placeholder="유저명 입력하시오."></th>
-							<th><button onclick="chatName()" id="startBtn" class="btn btn-sm btn-dark">등록</button></th>
-						</tr>
-					</table>
+					<div class="input-group">
+               			<input id="userName" type="text" class="form-control" style="color:#000" readonly>
+               			<span class="input-group-btn">
+               				<button type="button" onclick="chatName()" id="startBtn" class="btn btn-round btn-primary "><i class="fa fa-user"></i></button>
+               			</span>
+               		</div>
 				</div>
 				<div id="yourMsg">
-					<table class="inputTable">
-						<tr>
-							<th><input id="chatting" style="color:#000" placeholder="보내실 메세지를 입력하시오."></th>
-							<th><button id="send" class="btn btn-sm btn-success" onclick="send()" type="button">Send</button></th>
-						</tr>
-					</table>
+					<div class="input-group">
+               			<input id="chatting" type="text" class="form-control" style="color:#000" placeholder="보내실 메세지를 입력하시오.">
+               			<span class="input-group-btn">
+               				<button type="button" id="send" class="btn btn-round btn-primary " onclick="send()"><i class="fa fa-paper-plane-o"></i></button>
+               			</span>
+               		</div>
 				</div>
-				
 			</div>
 		</div>
 	</div>
     
     
- <!-- jQuery -->
+<!-- jQuery -->
 <script src="/static/vendors/jquery/dist/jquery.min.js"></script>   
-
 
 	<!-- 웹소켓 통신 프로세스 -->
 	<script type="text/javascript">
-	var ws;
+	//페이지 접근시 계정정보 전달
+	$(document).ready(function() {
+		//엑세스 성공한 계정 정보 끌어와서 전달
+		var accessId = $('#user_id').html();
+        $('#userName').val(accessId);
+    });
 	
+	var ws;
 	//웹소켓 오픈
 	function wsOpen(){
 		ws = new WebSocket("ws://" + location.host + "/chating");
@@ -114,9 +114,7 @@
 	function wsEvt(){
 		//소켓이 열리면 동작
 		ws.onopen = function(data){
-			
 		}
-		
 		//메세지 띄우는 코드
 		ws.onmessage = function(data){
 			var msg = data.data;
@@ -129,14 +127,14 @@
 					}
 				}else if(d.type == "message"){
 						if(d.sessionId == $("#sessionId").val()){
-							$("#chating").append("<p class='me'>나 :"+ d.msg+ "</p>");
-							$("#chating").scrollTop($("#chating")[0].scrollHeight);//중요 - 스크롤바 하단내리기 상대가 입력했을경우 하단으로 안내려가는 문제가발생함 찾느라애먹음;;  제이쿼리 방식을 썼음
+							$("#chating").append("<p class='me' style='color:#000; text-align: right;'>나 :"+ d.msg+ "</p>");
+							$("#chating").scrollTop($("#chating")[0].scrollHeight);//중요 - 스크롤바 하단내리기 
 						}else{
-							$("#chating").append("<p class='others'>"+ d.userName + " :" + d.msg + "</p>");
-							$("#chating").scrollTop($("#chating")[0].scrollHeight);//중요 - 스크롤바 하단내리기 상대가 입력했을경우 하단으로 안내려가는 문제가발생함 찾느라애먹음;;  제이쿼리 방식을 썼음
+							$("#chating").append("<p class='others' style='color:#000; text-align: left;'>"+ d.userName + " :" + d.msg + "</p>");
+							$("#chating").scrollTop($("#chating")[0].scrollHeight);//중요 - 스크롤바 하단내리기 
 						}
 				}else{
-					console.warn("unknown type!");
+					console.warn("unknown type!");//주의 콘솔 찍어내기
 				}
 			}
 		}
@@ -148,7 +146,14 @@
 		});
 		
 	}
-	//ws.onclose; x버튼 누르면 웹소켓도 닫아버리는 기능 구현하기
+	
+	
+	
+	//ws.onclose(); x버튼 누르면 웹소켓도 닫아버리는 기능 구현
+	$('#wsClose').on('click',function(){
+		ws.onclose();
+	});
+	
 	
 	//사용자명 지정
 	function chatName(){
@@ -176,6 +181,7 @@
 		$('#chatting').val("");//채팅입력값 날리기
 	}
 	</script>
+	
 
 	<!-- 대시보드 풀스크린 적용 -->
 	<script type="text/javascript">
