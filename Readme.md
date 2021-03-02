@@ -85,7 +85,7 @@
    - 멀티차트 데이터 Mybatis -> jpa전환 완료  
    - 로그인 Mybatis -> jpa전환 완료  
    - 게터 세터 -> 롬복 적용완료  
-24. 웹소켓 채팅 예제 참고 https://myhappyman.tistory.com/100?category=873296
+24. 스프링 부트 웹소켓 사용 실시간 채팅 기능 추가개발 70%완성( 방생성, 중요정보DB연계처리 남음)
 
 ### 개발이슈
 1. SMTP 비밀번호 찾기 properties 정보 계정 정보 삭제
