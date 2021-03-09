@@ -501,67 +501,137 @@ chart.cursor.lineX.fillOpacity = 0.1;
 
 
 <script type="text/javascript">
-//자바스크립트 YYYY-MM-DD 오늘 날짜 구하기
-var Now = new Date();
+		//자바스크립트 YYYY-MM-DD 오늘 날짜 구하기
+		var Now = new Date();
 		var NowTime = Now.getFullYear();
 		NowTime += '.' + (Now.getMonth()+1);
 		NowTime += '.' + Now.getDate();
-		//현재날짜 이전의 날짜는 선택못하도록 막
-		//$('#myDatepicker2').data("DateTimePicker").minDate(NowTime);
-		</script>
+</script>
 <!-- 그리드 제어 명령어 -->
 <script type="text/javascript">
-//데이터 그리드 내부에서 모바일로 접속시 가상키보드가 튀어나오던현상을 제거해줌. 
-//$(':focus').blur(); // 모바일 키보드 해제
-
-var grid1 = new tui.Grid({
-    el: document.getElementById('grid'),
-    data: {
+const grid1 = new tui.Grid({
+  el: document.getElementById('grid'),
+   data: {
+  	 	withCredentials: false,
+	    initialRequest: true,
         api: {
-          readData: { url: '/selectBoardList', method: 'POST' }
+           readData: { url: '/selectBoardList', method: 'POST'}
+           //,createData: { url: '/api/create', method: 'POST' }
+		   //,updateData: { url: '/api/update', method: 'PUT' }
+		   //,deleteData: { url: '/api/delete', method: 'DELETE' }
+		   //,modifyData: { url: '/api/modify', method: 'POST' }
         }
-      },    
+      },
     bodyHeight: 350,
     virtualScrolling :true,
     rowHeaders:['checkbox','rowNum'],
     rowHeight: 70,
-    columnOptions:{
-    	width:100
+  columns: [
+    {
+      header: '브랜드명',
+      align: 'center',
+      name: 'brand_name',
+      sortingType: 'desc',
+      sortable: true,
+      editor: 'text'
     },
-    columns: [
-        {
-            header: '브랜드명',
-            name: 'brand_name'
-        },
-        {
-        	header: '자재번호 ',
-            name: 'item_number'
-        },
-        {
-        	header: '제품명',
-            name: 'season_reason',
-            editOptions: {
-                type: 'text',
-                maxLength: 10,
-                useViewMode: true
+    {
+      header: '모델번호',
+      align: 'center',
+      name: 'item_number',
+      sortingType: 'desc',
+      sortable: true,
+       formatter: 'listItemText',
+          editor: {
+            type: 'select',
+            options: {
+              listItems: [
+                { text: 'Deluxe', value: '1' },
+                { text: 'EP', value: '2' },
+                { text: 'Single', value: '3' }
+              ]
             }
-        },
-        {
-        	header: '제품상세',
-            name: 'status',
-            editOptions: {
-                type: 'text',
-                maxLength: 10,
-                useViewMode: true
+         }
+    },
+    {
+      header: '시즌',
+      align: 'center',
+      name: 'season_reason',
+      sortingType: 'desc',
+          sortable: true
+    },
+    {
+      header: '정보',
+      align: 'center',
+      name: 'status'
+    },
+     {
+      header: '제레널',
+      align: 'center',
+      name: 'clob',
+      sortingType: 'asc',
+      sortable: true
+    }
+  ],
+  	  columnOptions: {
+  	    //frozenCount: 1, //칸 고정시키기
+        //frozenBorderWidth: 2,
+        resizable: true //컬럼 사이즈 수동조절 ON/OFF
+      },
+      //그리드 데이터 집계 정보
+      summary: {
+        height: 40,
+        position: 'bottom',
+        columnContent: {
+          status: {
+            template: function(valueMap) {
+              return `MAX: ${valueMap.max}<br>MIN: ${valueMap.min}`;
             }
-        },
-        {
-        	header: '구분',
-            name: 'STATUS',
+          },
+          clob: {
+            template: function(valueMap) {
+              return `TOTAL: ${valueMap.sum} <br>AVG: ${valueMap.avg.toFixed(2)}`;
+            }
+          }
         }
-    ]
+      }
 });
-		
+
+//로우추가버튼
+$('#addRow').click(function() {
+	grid1.appendRow();
+});
+
+//로우삭제버튼
+$('#deleteRow').click(function() {
+// 체크된 값만 삭제될 수 있도록 처리 실데이터가 지워지는게 아닌 추가한 로우삭제용도임.
+	grid1.removeCheckedRows(true);
+});
+
+
+/* grid1.on('beforeRequest', function(data) {
+console.log("요청보내기 전 처리");
+  // 요청보내기 전 처리
+}).on('response', function(data) {
+	console.log("성공여부에 관계없이 응답받았을때 실행");
+  // 성공여부에 관계없이 응답받았을때 실행
+}).on('successResponse', function(data) {
+	console.log("요청보내기 전 처리");
+  // 결과가 성공일때
+}).on('failResponse', function(data) {
+	console.log("결과 실패일때 이쪽");
+  // 결과 실패일때 이쪽
+}).on('errorResponse', function(data) {
+	console.log("오류발생시 예외처리");
+  // 오류발생시 예외처리
+}); */
+
+//그리드 헤더버튼-> 사이드바 사이즈 축소 때 그리드 깨지는 현상 리프레시 기능
+$(document).on('click','#menu_toggle',function() {
+	grid1.refreshLayout();
+});
+</script>
+	
 		
 		
 		
@@ -693,7 +763,7 @@ var grid1 = new tui.Grid({
 			border : '#000000',
 			text : '#444'
 		},
-		selection : {
+		setSelectionRange : {
 			background : '#A4A4A4',
 			border : '#004082'
 		},
@@ -701,6 +771,10 @@ var grid1 = new tui.Grid({
 			border : '#000000',
 			background : '#262930'
 		},
+		 selection: {
+		    background: '#4daaf9',
+		    border: '#004082'
+		  },
 		scrollbar : {
 			background : '#262930',
 			thumb : '#fff',
@@ -716,7 +790,7 @@ var grid1 = new tui.Grid({
 			header : {
 				background : '#262930',
 				border : '#000000',
-				text : '#c3f400'
+				text : '#4b96e6'
 			},
 			rowHeader : {
 				background : '#262930',
